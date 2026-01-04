@@ -1,29 +1,33 @@
-import { dehydrate } from "@tanstack/react-query";
-import getQueryClient from "@/lib/queryClient";
-import { fetchNotes } from "@/lib/api";
-import HydrateClient from "./Hydrate.client";
+import type { Metadata } from "next";
 import NotesClient from "./Notes.client";
 
-type Props = { params: Promise<{ slug: string[] }> };
+type Props = {
+  params: { slug: string[] };
+};
 
-export default async function FilteredNotesPage({ params }: Props) {
-  const { slug } = await params;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const category = params.slug[0] === "all" ? "all notes" : params.slug[0];
 
-  const raw = slug?.[0];
-  const tag = raw === "all" ? undefined : raw;
+  return {
+    title: `Notes: ${category} | NoteHub`,
+    description: `Browse notes filtered by ${category}`,
+    openGraph: {
+      title: `Notes: ${category} | NoteHub`,
+      description: `Browse notes filtered by ${category}`,
+      url: `https://notehub.vercel.app/notes/filter/${params.slug.join("/")}`,
+      images: [
+        {
+          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+          width: 1200,
+          height: 630,
+          alt: "NoteHub",
+        },
+      ],
+    },
+  };
+}
 
-  const queryClient = getQueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey: ["notes", { page: 1, perPage: 20, search: "", tag }],
-    queryFn: () => fetchNotes({ page: 1, perPage: 20, search: "", tag }),
-  });
-
-  const state = dehydrate(queryClient);
-
-  return (
-    <HydrateClient state={state}>
-      <NotesClient tag={tag} />
-    </HydrateClient>
-  );
+export default function FilteredNotesPage({ params }: Props) {
+  const category = params.slug[0] === "all" ? undefined : params.slug[0];
+  return <NotesClient tag={category} />;
 }

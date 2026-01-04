@@ -6,8 +6,7 @@ import { fetchNotes } from "@/lib/api";
 import NotesList from "@/components/NoteList/NoteList";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
-import NoteForm from "@/components/NoteForm/NoteForm";
-import Modal from "@/components/Modal/Modal";
+import Link from "next/link";
 import css from "./Notes.client.module.css";
 
 type Props = {
@@ -28,7 +27,6 @@ function useDebouncedValue<T>(value: T, delay = 400) {
 export default function NotesClient({ tag }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const debouncedSearch = useDebouncedValue(search, 400);
 
@@ -45,16 +43,16 @@ export default function NotesClient({ tag }: Props) {
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    setPage(1); 
+    setPage(1);
   };
 
   return (
     <div className={css.wrapper}>
       <div className={css.toolbar}>
         <SearchBox value={search} onChange={handleSearchChange} />
-        <button className={css.button} type="button" onClick={() => setIsModalOpen(true)}>
-          Create note
-        </button>
+        <Link href="/notes/action/create" className={css.button}>
+          Create note +
+        </Link>
       </div>
 
       {isLoading && <p className={css.status}>Loading...</p>}
@@ -63,12 +61,6 @@ export default function NotesClient({ tag }: Props) {
       {!isLoading && !isError && <NotesList notes={notes} />}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-
-      {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onClose={() => setIsModalOpen(false)} />
-        </Modal>
-      )}
     </div>
   );
 }
