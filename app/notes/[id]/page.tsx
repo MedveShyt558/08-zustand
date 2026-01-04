@@ -1,27 +1,26 @@
 import type { Metadata } from "next";
-import { fetchNoteById } from "@/lib/api";
 import NotePreview from "@/components/NotePreview/NotePreview";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const note = await fetchNoteById(params.id);
+  const { id } = await params;
 
   return {
-    title: `${note.title} | NoteHub`,
-    description: note.content.slice(0, 100),
+    title: "Note details | NoteHub",
+    description: "View note details",
     openGraph: {
-      title: `${note.title} | NoteHub`,
-      description: note.content.slice(0, 100),
-      url: `https://notehub.vercel.app/notes/${params.id}`,
+      title: "Note details | NoteHub",
+      description: "View note details",
+      url: `https://notehub.vercel.app/notes/${id}`,
       images: [
         {
           url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
           width: 1200,
           height: 630,
-          alt: note.title,
+          alt: "NoteHub",
         },
       ],
     },
@@ -29,5 +28,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function NotePage({ params }: Props) {
-  return <NotePreview id={params.id} />;
+  const { id } = await params;
+  return <NotePreview id={id} />;
 }

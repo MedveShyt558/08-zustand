@@ -7,14 +7,8 @@ export interface FetchNotesResponse {
   totalPages: number;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_NOTEHUB_API;
-
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_NOTEHUB_API is not defined");
-}
-
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_NOTEHUB_API,
 });
 
 api.interceptors.request.use((config) => {
@@ -26,12 +20,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+function ensureBaseUrl() {
+  if (!process.env.NEXT_PUBLIC_NOTEHUB_API) {
+    throw new Error("NEXT_PUBLIC_NOTEHUB_API is not defined");
+  }
+}
+
 export const fetchNotes = async (params: {
   page: number;
   perPage: number;
   search?: string;
   tag?: string;
 }): Promise<FetchNotesResponse> => {
+  ensureBaseUrl();
+
   const res: AxiosResponse<FetchNotesResponse> = await api.get("/notes", {
     params: {
       page: params.page,
@@ -40,20 +42,27 @@ export const fetchNotes = async (params: {
       tag: params.tag || undefined,
     },
   });
+
   return res.data;
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
+  ensureBaseUrl();
+
   const res: AxiosResponse<Note> = await api.get(`/notes/${id}`);
   return res.data;
 };
 
 export const createNote = async (payload: CreateNoteRequest): Promise<Note> => {
+  ensureBaseUrl();
+
   const res: AxiosResponse<Note> = await api.post("/notes", payload);
   return res.data;
 };
 
 export const deleteNote = async (id: string): Promise<Note> => {
+  ensureBaseUrl();
+
   const res: AxiosResponse<Note> = await api.delete(`/notes/${id}`);
   return res.data;
 };

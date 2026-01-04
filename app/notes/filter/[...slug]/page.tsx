@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import NotesClient from "./Notes.client";
 
 type Props = {
-  params: { slug: string[] };
+  params?: { slug?: string[] };
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = params.slug[0] === "all" ? "all notes" : params.slug[0];
+  const slug = params?.slug ?? ["all"];
+  const category = slug[0] === "all" ? "all notes" : slug[0];
 
   return {
     title: `Notes: ${category} | NoteHub`,
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `Notes: ${category} | NoteHub`,
       description: `Browse notes filtered by ${category}`,
-      url: `https://notehub.vercel.app/notes/filter/${params.slug.join("/")}`,
+      url: `https://notehub.vercel.app/notes/filter/${slug.join("/")}`,
       images: [
         {
           url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
@@ -28,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default function FilteredNotesPage({ params }: Props) {
-  const category = params.slug[0] === "all" ? undefined : params.slug[0];
+  const slug = params?.slug ?? ["all"];
+  const category = slug[0] === "all" ? undefined : slug[0];
   return <NotesClient tag={category} />;
 }

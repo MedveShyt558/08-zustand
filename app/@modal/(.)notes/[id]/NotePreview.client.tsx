@@ -13,9 +13,11 @@ export default function NotePreviewClient({ id }: Props) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
-    refetchOnMount: false, 
+    enabled: Boolean(id),
+    refetchOnMount: false,
   });
 
+  if (!id) return <p className={css.loading}>Loading...</p>;
   if (isLoading) return <p className={css.loading}>Loading...</p>;
   if (isError || !data) return <p className={css.error}>Error loading note</p>;
 
