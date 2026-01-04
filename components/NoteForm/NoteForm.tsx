@@ -1,39 +1,39 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import css from "./NoteForm.module.css";
 import { useNoteStore } from "@/lib/store/noteStore";
+import { createNote } from "@/lib/api";
+import type { NoteTag } from "@/types/note";
 
 export default function NoteForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { draft, setDraft, clearDraft } = useNoteStore();
 
   useEffect(() => {
     if (!draft) {
-      setDraft({
-        title: "",
-        content: "",
-        tag: "Todo",
-      });
+      setDraft({ title: "", content: "", tag: "Todo" });
     }
   }, [draft, setDraft]);
 
   const handleSubmit = async (formData: FormData) => {
-    const title = formData.get("title") as string;
-    const content = formData.get("content") as string;
-    const tag = formData.get("tag") as string;
+    const title = String(formData.get("title") ?? "");
+    const content = String(formData.get("content") ?? "");
+    const tag = String(formData.get("tag") ?? "Todo") as NoteTag;
 
-    await fetch("/api/notes", {
-      method: "POST",
-      body: JSON.stringify({ title, content, tag }),
-    });
+    await createNote({ title, content, tag });
 
     clearDraft();
+    await queryClient.invalidateQueries({ queryKey: ["notes"] });
     router.back();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setDraft({
       ...draft,
       [e.target.name]: e.target.value,
@@ -60,12 +60,7 @@ export default function NoteForm() {
         required
       />
 
-      <select
-        className={css.select}
-        name="tag"
-        value={draft.tag}
-        onChange={handleChange}
-      >
+      <select className={css.select} name="tag" value={draft.tag} onChange={handleChange}>
         <option value="Todo">Todo</option>
         <option value="Work">Work</option>
         <option value="Personal">Personal</option>
@@ -76,7 +71,8 @@ export default function NoteForm() {
         <button type="submit" className={css.submit}>
           Create
         </button>
-        <button type="button" onClick={() => router.back()} className={css.cancel}>
+
+        <button type="button" className={css.cancel} onClick={() => router.back()}>
           Cancel
         </button>
       </div>
