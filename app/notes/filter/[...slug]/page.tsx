@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import NotesClient from "./Notes.client";
 
 type Props = {
-  params?: { slug?: string[] };
+  params: Promise<{ slug: string[] }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const slug = params?.slug ?? ["all"];
+  const { slug } = await params;
+
   const category = slug[0] === "all" ? "all notes" : slug[0];
 
   return {
@@ -28,8 +29,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function FilteredNotesPage({ params }: Props) {
-  const slug = params?.slug ?? ["all"];
+export default async function FilteredNotesPage({ params }: Props) {
+  const { slug } = await params;
   const category = slug[0] === "all" ? undefined : slug[0];
+
   return <NotesClient tag={category} />;
 }

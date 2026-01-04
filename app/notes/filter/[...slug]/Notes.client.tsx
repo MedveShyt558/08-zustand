@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api";
 import NotesList from "@/components/NoteList/NoteList";
@@ -16,7 +16,7 @@ type Props = {
 function useDebouncedValue<T>(value: T, delay = 400) {
   const [debounced, setDebounced] = useState(value);
 
-  useMemo(() => {
+  useEffect(() => {
     const id = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(id);
   }, [value, delay]);

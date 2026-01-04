@@ -2,11 +2,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import css from "./NoteForm.module.css";
 import { useNoteStore } from "@/lib/store/noteStore";
 import { createNote } from "@/lib/api";
 import type { NoteTag } from "@/types/note";
+
+const tags: NoteTag[] = ["Todo", "Work", "Personal", "Meeting", "Shopping"];
 
 export default function NoteForm() {
   const router = useRouter();
@@ -19,16 +21,21 @@ export default function NoteForm() {
     }
   }, [draft, setDraft]);
 
+  const mutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: async () => {
+      clearDraft();
+      await queryClient.invalidateQueries({ queryKey: ["notes"] });
+      router.back();
+    },
+  });
+
   const handleSubmit = async (formData: FormData) => {
     const title = String(formData.get("title") ?? "");
     const content = String(formData.get("content") ?? "");
     const tag = String(formData.get("tag") ?? "Todo") as NoteTag;
 
-    await createNote({ title, content, tag });
-
-    clearDraft();
-    await queryClient.invalidateQueries({ queryKey: ["notes"] });
-    router.back();
+    await mutation.mutateAsync({ title, content, tag });
   };
 
   const handleChange = (
@@ -61,14 +68,15 @@ export default function NoteForm() {
       />
 
       <select className={css.select} name="tag" value={draft.tag} onChange={handleChange}>
-        <option value="Todo">Todo</option>
-        <option value="Work">Work</option>
-        <option value="Personal">Personal</option>
-        <option value="Idea">Idea</option>
+        {tags.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
       </select>
 
       <div className={css.actions}>
-        <button type="submit" className={css.submit}>
+        <button type="submit" className={css.submit} disabled={mutation.isPending}>
           Create
         </button>
 
